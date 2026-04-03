@@ -1,205 +1,154 @@
-# 🌤️ AI Weather Temperature Predictor
+# 🌦️ Weather Temperature Forecasting using CNN-LSTM
 
-A deep learning web application that predicts the **next day's mean temperature** for any city in the world using a **CNN-LSTM neural network** trained on real historical weather data.
-
----
-
-## 🧠 How It Works
-
-1. You enter a city name in the web interface.
-2. The app fetches the **last 14 days of real weather data** from the [Open-Meteo API](https://open-meteo.com/) (free, no key needed).
-3. The data is feature-engineered and passed into a pre-trained **CNN-LSTM model**.
-4. The model predicts **tomorrow's mean temperature** in °C.
-
-You can also **retrain the model** for any city using 10 years of historical weather data — right from your terminal.
 
 ---
 
-## 📁 Project Structure
+## 🚀 Overview
+
+This project implements a **deep learning-based time series forecasting system** to predict **mean temperature** using historical weather data.
+
+It leverages a **hybrid CNN + LSTM architecture** to capture:
+- 📌 Spatial patterns (via CNN)
+- 📌 Temporal dependencies (via LSTM)
+
+The system is designed to be **robust, scalable, and deployable**, with an integrated **Flask API for real-time predictions**.
+
+---
+
+## 🧠 Methodology
+
+### 🔹 Phase 1 (Exploration & Feature Engineering)
+
+Work done in `phase1.ipynb`:
+
+- Data cleaning & preprocessing
+- Handling missing values
+- Feature engineering:
+  - Lag features (1, 2, 3, 7 days)
+  - Rolling mean & standard deviation (7 & 14 days)
+- Seasonality encoding:
+  - Sine and Cosine transformation of time
+- Feature scaling using StandardScaler
+- Visualization of trends and correlations
+- Dataset splitting (train/test)
+
+👉 Goal: Transform raw time series into **model-ready structured data**
+
+---
+
+### 🔹 Phase 2 (Model Building)
+
+- CNN layers extract local patterns
+- LSTM layers learn sequential dependencies
+- Dense layers produce final output
+
+👉 Hybrid approach improves performance over:
+- Traditional AR models
+- Standalone LSTM networks
+
+---
+
+## 📂 Project Structure
 
 ```
-ai_project/
-│
-├── app.py                  # Flask web server + prediction API
-├── train_city.py           # Retrain the model for any city
-│
-├── best_cnn_lstm.keras     # Pre-trained CNN-LSTM model weights
-├── x_scaler.pkl            # Feature scaler (MinMaxScaler)
-├── y_scaler.pkl            # Target scaler (MinMaxScaler)
-├── feature_cols.pkl        # Feature column names used during training
-│
-├── templates/
-│   └── index.html          # Frontend UI
-│
-├── Dataset/
-│   ├── Train.csv           # Original training dataset (Delhi weather)
-│   └── Test.csv            # Original test dataset
-│
-├── phase1.ipynb            # Exploratory data analysis & model experiments
-└── cnn_lstm_results.png    # Training results visualization
+├── app.py
+├── train_city.py
+├── phase1.ipynb
+├── best_cnn_lstm.keras
+├── x_scaler.pkl
+├── y_scaler.pkl
+├── feature_cols.pkl
+├── train_featured.csv
+├── test_featured.csv
+├── requirements.txt
+└── cnn_lstm_results.png
 ```
 
 ---
 
-## 🚀 Getting Started
+## 📊 Features Used
 
-### 1. Clone the Repository
+- Lag Features → lag_1, lag_2, lag_3, lag_7  
+- Rolling Stats → mean & std (7, 14 days)  
+- Seasonal Encoding → sin_day, cos_day  
+- Derived Metrics:
+  - Temperature-Humidity Index  
+  - Wind-Pressure Interaction  
+  - Weekly Change  
+
+---
+
+## ⚙️ Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
-```
-
-### 2. Install Dependencies
-
-It is recommended to use a virtual environment:
-
-```bash
-python -m venv venv
-source venv/bin/activate      # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-> If `requirements.txt` is not present, install manually:
+---
 
-```bash
-pip install flask tensorflow scikit-learn numpy pandas requests
-```
-
-### 3. Run the Web App
+## ▶️ Run
 
 ```bash
 python app.py
 ```
 
-Then open your browser and go to: [http://localhost:5000](http://localhost:5000)
+Open: http://127.0.0.1:5000
 
 ---
 
-## 🔁 Retrain for Any City
+## 📥 Input Format
 
-The pre-trained model is optimized for **Delhi, India**. To retrain it for your city:
-
-```bash
-python train_city.py
-```
-
-You will be prompted to enter a city name (e.g., `London`, `Tokyo`, `Chennai`). The script will:
-- Fetch 10 years of historical weather data via Open-Meteo Archive API
-- Engineer time-series features
-- Train a new CNN-LSTM model
-- Save the new model files (`best_cnn_lstm.keras`, scalers, feature list)
-
-After retraining, **restart `app.py`** so it loads the updated model.
-
----
-
-## 🏗️ Model Architecture
-
-```
-Input (14 days × N features)
-    ↓
-Conv1D (64 filters, kernel=3, ReLU)
-    ↓
-MaxPooling1D (pool_size=2)
-    ↓
-Dropout (0.2)
-    ↓
-LSTM (64 units, return_sequences=True)
-    ↓
-LSTM (32 units)
-    ↓
-Dropout (0.2)
-    ↓
-Dense (32, ReLU)
-    ↓
-Dense (1) → Predicted Temperature (°C)
-```
-
-**Training Details:**
-- Optimizer: Adam
-- Loss: Mean Squared Error (MSE)
-- Early stopping: patience = 6 epochs
-- Train/Test split: 90% / 10%
-- Input window: 14 days
-
----
-
-## ⚙️ Features Engineered
-
-| Feature | Description |
-|---|---|
-| `meantemp`, `humidity`, `wind_speed`, `meanpressure` | Raw daily weather readings |
-| `*_lag_1/2/3/7` | Lagged values for each raw feature |
-| `temp_roll_mean_7/14` | Rolling mean of temperature |
-| `temp_roll_std_7/14` | Rolling std dev (log-scaled) |
-| `sin_day`, `cos_day` | Cyclical day-of-year encoding |
-| `temp_humidity_index` | Temperature × Humidity / 100 |
-| `temp_change_7d` | 7-day temperature delta |
-| `wind_pressure_index` | Wind speed × Pressure / 1000 |
-
----
-
-## 🌐 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Serves the web UI |
-| `GET` | `/fetch-weather?city=<name>` | Fetches last 14 days of real weather for any city |
-| `POST` | `/predict` | Accepts 14-day weather JSON, returns temperature prediction |
-
-### Example `/predict` Request
+Provide last 14 days:
 
 ```json
-POST /predict
-Content-Type: application/json
-
 [
-  { "meantemp": 28.5, "humidity": 65.2, "wind_speed": 12.1, "meanpressure": 1005.3 },
-  ...  (14 entries total)
+  {
+    "meantemp": 25,
+    "humidity": 60,
+    "wind_speed": 5,
+    "meanpressure": 1010
+  }
 ]
 ```
 
-### Example Response
+---
 
-```json
-{
-  "prediction": 31.47,
-  "status": "ok"
-}
-```
+## 📈 Evaluation Metrics
+
+- RMSE (Root Mean Square Error)
+- MAPE (Mean Absolute Percentage Error)
+
+👉 Used to evaluate prediction accuracy and generalization.
 
 ---
 
-## 📊 Dataset
+## 🌟 Novelty & Contributions
 
-The original dataset is Delhi Climate Data (2013–2017) from Kaggle, containing daily records of:
-- Mean Temperature (°C)
-- Humidity (%)
-- Wind Speed (km/h)
-- Mean Pressure (hPa)
-
-Live prediction data is sourced in real-time from the **Open-Meteo API** — no API key required.
-
----
-
-## 🛠️ Tech Stack
-
-- **Backend:** Python, Flask
-- **ML/DL:** TensorFlow / Keras, Scikit-learn
-- **Data:** Pandas, NumPy
-- **Weather Data:** [Open-Meteo API](https://open-meteo.com/)
-- **Frontend:** HTML, CSS, JavaScript (in `templates/index.html`)
+- 🔥 Hybrid CNN-LSTM architecture (captures both spatial + temporal patterns)
+- 🧠 Strong feature engineering pipeline
+- 🌍 Seasonality encoding using trigonometric functions
+- 📊 Stabilized training via scaling & transformations
+- ⚡ End-to-end pipeline (training → inference → deployment)
+- 🧪 Experiment-driven improvements from Phase 1
 
 ---
 
-## 📌 Notes
+## 📌 Future Scope
 
-- The `.keras` model files and `.pkl` scaler files are large binary files. Consider adding them to `.gitignore` and hosting them separately (e.g., Google Drive, HuggingFace) for production use.
-- The app runs in Flask's built-in development server. For production, use **Gunicorn** or **uWSGI** behind **Nginx**.
+- Transformer-based time series models
+- Multi-city weather forecasting
+- Real-time API deployment (cloud)
+- Interactive dashboard (Streamlit/React)
 
 ---
 
-## 📄 License
+## 👨‍💻 Author
 
-This project is for educational purposes. Feel free to fork, modify, and build upon it.
+Siddharth Shukla  
+AI/ML | Deep Learning | Time Series
+
+---
+
+## 📜 License
+
+Academic / Research Use Only
