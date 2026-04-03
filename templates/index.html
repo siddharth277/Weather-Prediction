@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delhi Temperature Forecast</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --card: #111827;
+      --border: #1e293b;
+      --accent: #f97316;
+      --accent2: #38bdf8;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .instructions {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+    }
+
+    thead tr {
+      background: var(--border);
+    }
+
+    th {
+      padding: 0.75rem 0.6rem;
+      text-align: center;
+      font-weight: 500;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.4rem 0.4rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    td:first-child {
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding-left: 0.75rem;
+    }
+
+    input[type="number"] {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.5rem;
+      width: 90px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.75rem 1.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #predictBtn {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #autoFetchBtn {
+      background: var(--accent2);
+      color: var(--bg);
+    }
+
+    .city-input {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      width: 200px;
+      transition: border-color 0.2s;
+    }
+    .city-input:focus {
+      outline: none;
+      border-color: var(--accent2);
+    }
+
+    #fillBtn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    #clearBtn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .result-box {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-box.visible {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-temp {
+      font-size: 4rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .result-temp span {
+      font-size: 2rem;
+      color: var(--muted);
+    }
+
+    .result-sub {
+      margin-top: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .error-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      color: var(--error);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+
+    .error-box.visible {
+      display: block;
+    }
+
+    .spinner {
+      display: none;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    .spinner.visible {
+      display: block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <header>
+      <h1 id="mainTitle">Global Temperature Forecast</h1>
+      <p>CNN-LSTM model · Enter 14 days of weather data → predict tomorrow</p>
+    </header>
+
+    <div class="instructions">
+      → Fill in the last 14 days of weather observations (oldest first, most recent last)<br>
+      → meantemp in °C · humidity in % · wind_speed in km/h · meanpressure in hPa<br>
+      → Click <strong>Predict Tomorrow</strong> to get the forecast
+    </div>
+
+    <div class="table-wrapper">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Mean Temp (°C)</th>
+            <th>Humidity (%)</th>
+            <th>Wind Speed (km/h)</th>
+            <th>Mean Pressure (hPa)</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <input type="text" id="cityInput" placeholder="Enter City (e.g. London)" class="city-input">
+      <button id="autoFetchBtn" onclick="autoFetch()">Auto-Fetch Latest</button>
+      <button id="predictBtn" onclick="predict()">Predict Tomorrow</button>
+      <button id="fillBtn" onclick="fillSample()">Fill Sample Data</button>
+      <button id="clearBtn" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+    <div class="spinner" id="spinner"></div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-label" id="resultLabel">Predicted temperature for tomorrow</div>
+      <div class="result-temp" id="resultTemp">--<span>°C</span></div>
+      <div class="result-sub" id="resultSub"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const ROWS = 14;
+
+    // Build table rows
+    const tbody = document.getElementById("tableBody");
+    for (let i = 1; i <= ROWS; i++) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+    <td>Day ${i}</td>
+    <td><input type="number" step="0.1" placeholder="e.g. 18.5" id="temp_${i}"></td>
+    <td><input type="number" step="0.1" placeholder="e.g. 72" id="hum_${i}"></td>
+    <td><input type="number" step="0.1" placeholder="e.g. 6.2" id="wind_${i}"></td>
+    <td><input type="number" step="0.1" placeholder="e.g. 1013" id="pres_${i}"></td>
+  `;
+      tbody.appendChild(row);
+    }
+
+    // Sample data (Jan 2017 — first 14 days of test set)
+    const sampleData = [
+      [15.9, 85.9, 2.7, 1015], [18.5, 77.2, 2.9, 1018],
+      [17.1, 81.9, 4.0, 1018], [18.7, 70.1, 4.5, 1016],
+      [18.4, 74.9, 3.3, 1014], [17.0, 77.0, 4.6, 1012],
+      [16.5, 82.0, 3.1, 1011], [15.2, 88.0, 2.4, 1013],
+      [14.8, 91.0, 1.8, 1015], [16.1, 79.0, 3.7, 1016],
+      [17.3, 74.0, 4.2, 1014], [18.0, 71.0, 5.1, 1013],
+      [17.8, 76.0, 3.9, 1012], [16.9, 80.0, 3.5, 1014],
+    ];
+
+    function fillSample() {
+      for (let i = 1; i <= ROWS; i++) {
+        document.getElementById(`temp_${i}`).value = sampleData[i - 1][0];
+        document.getElementById(`hum_${i}`).value = sampleData[i - 1][1];
+        document.getElementById(`wind_${i}`).value = sampleData[i - 1][2];
+        document.getElementById(`pres_${i}`).value = sampleData[i - 1][3];
+      }
+    }
+
+    async function autoFetch() {
+      document.getElementById("errorBox").classList.remove("visible");
+      document.getElementById("resultBox").classList.remove("visible");
+      
+      const cityVal = document.getElementById("cityInput").value.trim() || 'Delhi';
+      
+      document.getElementById("spinner").classList.add("visible");
+      const btn = document.getElementById("autoFetchBtn");
+      btn.disabled = true;
+      btn.textContent = "Fetching...";
+
+      try {
+        const res = await fetch(`/fetch-weather?city=${encodeURIComponent(cityVal)}`);
+        const result = await res.json();
+        if (result.status === "error") {
+          showError(result.error);
+        } else {
+          const data = result.data;
+          
+          // Update title to show the resolved city
+          if (result.city) {
+            document.getElementById("mainTitle").innerHTML = `${result.city} Forecast`;
+          }
+          
+          if (data.length < ROWS) {
+            showError(`Only got ${data.length} days of data, needed ${ROWS}.`);
+          } else {
+            for (let i = 1; i <= ROWS; i++) {
+              document.getElementById(`temp_${i}`).value = data[i - 1].meantemp;
+              document.getElementById(`hum_${i}`).value = data[i - 1].humidity;
+              document.getElementById(`wind_${i}`).value = data[i - 1].wind_speed;
+              document.getElementById(`pres_${i}`).value = data[i - 1].meanpressure;
+            }
+          }
+        }
+      } catch (e) {
+        showError("Could not fetch data. " + e.message);
+      } finally {
+        document.getElementById("spinner").classList.remove("visible");
+        btn.disabled = false;
+        btn.textContent = "Auto-Fetch Latest";
+      }
+    }
+
+    function clearAll() {
+      for (let i = 1; i <= ROWS; i++) {
+        document.getElementById(`temp_${i}`).value = "";
+        document.getElementById(`hum_${i}`).value = "";
+        document.getElementById(`wind_${i}`).value = "";
+        document.getElementById(`pres_${i}`).value = "";
+      }
+      document.getElementById("resultBox").classList.remove("visible");
+      document.getElementById("errorBox").classList.remove("visible");
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("errorBox");
+      box.textContent = "Error: " + msg;
+      box.classList.add("visible");
+      document.getElementById("resultBox").classList.remove("visible");
+    }
+
+    async function predict() {
+      document.getElementById("errorBox").classList.remove("visible");
+      document.getElementById("resultBox").classList.remove("visible");
+
+      // Collect data
+      const entries = [];
+      for (let i = 1; i <= ROWS; i++) {
+        const t = parseFloat(document.getElementById(`temp_${i}`).value);
+        const h = parseFloat(document.getElementById(`hum_${i}`).value);
+        const w = parseFloat(document.getElementById(`wind_${i}`).value);
+        const p = parseFloat(document.getElementById(`pres_${i}`).value);
+        if (isNaN(t) || isNaN(h) || isNaN(w) || isNaN(p)) {
+          showError(`Day ${i} has missing values. Please fill all fields.`);
+          return;
+        }
+        entries.push({ meantemp: t, humidity: h, wind_speed: w, meanpressure: p });
+      }
+
+      // Show spinner
+      document.getElementById("spinner").classList.add("visible");
+      document.getElementById("predictBtn").disabled = true;
+
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entries)
+        });
+        const data = await res.json();
+
+        if (data.status === "error") {
+          showError(data.error);
+        } else {
+          document.getElementById("resultTemp").innerHTML =
+            data.prediction + "<span>°C</span>";
+            
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const dateString = tomorrow.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+          document.getElementById("resultLabel").textContent = `Predicted temperature for tomorrow (${dateString})`;
+            
+          document.getElementById("resultSub").textContent =
+            "Based on the last 14 days you entered";
+          document.getElementById("resultBox").classList.add("visible");
+        }
+      } catch (e) {
+        showError("Could not reach the server. Is app.py running?");
+      } finally {
+        document.getElementById("spinner").classList.remove("visible");
+        document.getElementById("predictBtn").disabled = false;
+      }
+    }
+  </script>
+</body>
+
+</html>
