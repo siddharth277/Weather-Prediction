@@ -1,7 +1,7 @@
 # 🌦️ Weather Temperature Forecasting using CNN-LSTM
 
 
----
+----
 
 ## 🚀 Overview
 
@@ -13,7 +13,7 @@ It leverages a **hybrid CNN + LSTM architecture** to capture:
 
 The system is designed to be **robust, scalable, and deployable**, with an integrated **Flask API for real-time predictions**.
 
----
+----
 
 ## 🧠 Methodology
 
